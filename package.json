@@ -9,7 +9,6 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.18.2",
-    "node-fetch": "^2.6.7" 
-    <!-- Note: node-fetch@2 est utilisé ici car c'est une version plus stable pour CJS -->
+    "node-fetch": "^2.6.7"
   }
 }
