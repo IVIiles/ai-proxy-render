@@ -1,0 +1,15 @@
+{
+  "name": "ai-proxy-render",
+  "version": "1.0.0",
+  "description": "Proxy to OpenRouter for AI comparison app.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "node-fetch": "^2.6.7" 
+    <!-- Note: node-fetch@2 est utilisé ici car c'est une version plus stable pour CJS -->
+  }
+}
