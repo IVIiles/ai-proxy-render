@@ -7,10 +7,13 @@ const app = express();
 const port = process.env.PORT || 10000; 
 
 // Utiliser CORS pour autoriser l'accès depuis votre domaine InfinityFree
-// REMPLACER 'https://votre-site-infinityfree.com' par l'URL exacte de votre site hébergé
+// ******************************************************************************
+// ATTENTION : REMPLACER PAR VOTRE VRAI DOMAINE INFINITYFREE. 
+// Inclure les versions HTTP et HTTPS si votre site peut être accédé par les deux.
+// ******************************************************************************
 const allowedOrigins = [
-    'https://votre-site-infinityfree.com', 
-    'http://votre-site-infinityfree.com', 
+    'https://milescorp.great-site.net', // Exemple HTTPS
+    'http://mon-comparateur-ia.infinityfreeapp.com',   // Exemple HTTP
     // Ajoutez d'autres domaines si nécessaire, y compris http et https
 ];
 
@@ -60,8 +63,8 @@ app.post('/api/chat', async (req, res) => {
                 // Utiliser la clé API sécurisée du serveur
                 'Authorization': `Bearer ${apiKey}`, 
                 'Content-Type': 'application/json',
-                // Indiquer la source de la requête pour OpenRouter
-                'HTTP-Referer': 'https://votre-site-infinityfree.com', 
+                // Indiquer la source de la requête pour OpenRouter (Utiliser aussi votre vrai domaine ici)
+                'HTTP-Referer': allowedOrigins[0] || 'https://default-referer.com', 
             },
             body: JSON.stringify(openrouterPayload)
         });
