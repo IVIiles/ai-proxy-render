@@ -8,13 +8,14 @@ const port = process.env.PORT || 10000;
 
 // Utiliser CORS pour autoriser l'accès depuis votre domaine InfinityFree
 // ******************************************************************************
-// ATTENTION : REMPLACER PAR VOTRE VRAI DOMAINE INFINITYFREE. 
-// Inclure les versions HTTP et HTTPS si votre site peut être accédé par les deux.
+// 🛑 ATTENTION : REMPLACER CES EXEMPLES PAR VOTRE VRAI DOMAINE INFINITYFREE. 
+// Le format doit être 'http://domaine.tld' ou 'https://domaine.tld'
 // ******************************************************************************
 const allowedOrigins = [
-    'https://milescorp.great-site.net', // Exemple HTTPS
-    'http://mon-comparateur-ia.infinityfreeapp.com',   // Exemple HTTP
-    // Ajoutez d'autres domaines si nécessaire, y compris http et https
+    'https://milescorp.great-site.net',          // 🛑 REMPLACER ICI : Votre domaine si vous utilisez HTTPS
+    'http://milescorp.great-site.net',           // 🛑 REMPLACER ICI : Votre domaine si vous utilisez HTTP
+    'http://milescorp.great-site.net', // 🛑 REMPLACER ICI : L'URL par défaut de InfinityFree (ex: http://votrecompte.infinityfreeapp.com)
+    'https://milescorp.great-site.net', // 🛑 REMPLACER ICI : Votre domaine de test ou personnalisé si vous en avez un.
 ];
 
 app.use(cors({
@@ -23,6 +24,7 @@ app.use(cors({
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
+            console.warn(`Requête CORS bloquée depuis l'origine: ${origin}`);
             callback(new Error('Not allowed by CORS'));
         }
     }
@@ -30,6 +32,15 @@ app.use(cors({
 
 // Middleware pour parser le JSON du front-end
 app.use(express.json({ limit: '5mb' })); // Augmenter la limite pour les fichiers (base64)
+
+// ******************************************************************************
+// NOUVEAU : Ajout de l'endpoint /status que votre front-end appelle pour vérifier la connexion
+// ******************************************************************************
+app.get('/api/chat/status', (req, res) => {
+    // Confirme que le serveur est bien démarré et répond
+    res.status(200).json({ status: 'ok', message: 'Proxy is running' });
+});
+
 
 // Endpoint unique pour le chat (qui est appelé par votre front-end JS)
 app.post('/api/chat', async (req, res) => {
@@ -63,7 +74,7 @@ app.post('/api/chat', async (req, res) => {
                 // Utiliser la clé API sécurisée du serveur
                 'Authorization': `Bearer ${apiKey}`, 
                 'Content-Type': 'application/json',
-                // Indiquer la source de la requête pour OpenRouter (Utiliser aussi votre vrai domaine ici)
+                // Indiquer la source de la requête pour OpenRouter
                 'HTTP-Referer': allowedOrigins[0] || 'https://default-referer.com', 
             },
             body: JSON.stringify(openrouterPayload)
