@@ -1,26 +1,22 @@
 const express = require('express');
 const fetch = require('node-fetch');
-const cors = require('cors'); // Nécessaire pour autoriser les requêtes de votre site InfinityFree
+const cors = require('cors'); 
 
 const app = express();
-// PORT doit être lu depuis l'environnement Render
 const port = process.env.PORT || 10000; 
 
-// Utiliser CORS pour autoriser l'accès depuis votre domaine InfinityFree
 // ******************************************************************************
-// 🛑 ATTENTION : REMPLACER CES EXEMPLES PAR VOTRE VRAI DOMAINE INFINITYFREE. 
-// Le format doit être 'http://domaine.tld' ou 'https://domaine.tld'
+// 🛑 ÉTAPE 1: REMPLACER PAR VOTRE VRAI DOMAINE INFINITYFREE/GREAT-SITE.NET
 // ******************************************************************************
 const allowedOrigins = [
-    'https://milescorp.great-site.net',          // 🛑 REMPLACER ICI : Votre domaine si vous utilisez HTTPS
-    'http://milescorp.great-site.net',           // 🛑 REMPLACER ICI : Votre domaine si vous utilisez HTTP
-    'http://milescorp.great-site.net', // 🛑 REMPLACER ICI : L'URL par défaut de InfinityFree (ex: http://votrecompte.infinityfreeapp.com)
-    'https://milescorp.great-site.net', // 🛑 REMPLACER ICI : Votre domaine de test ou personnalisé si vous en avez un.
+    'https://milescorp.great-site.net', // 🛑 REMPLACER PAR VOTRE VRAI DOMAINE HTTPS
+    'http://milescorp.great-site.net',  // 🛑 REMPLACER PAR VOTRE VRAI DOMAINE HTTP
+    // Si votre domaine par défaut est utilisé, ajoutez-le aussi:
+    // 'http://mon-comparateur-ia.infinityfreeapp.com', 
 ];
 
 app.use(cors({
     origin: function (origin, callback) {
-        // Permettre les requêtes sans 'origin' (ex: Postman) ou si l'origin est dans la liste
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
@@ -30,65 +26,57 @@ app.use(cors({
     }
 }));
 
-// Middleware pour parser le JSON du front-end
-app.use(express.json({ limit: '5mb' })); // Augmenter la limite pour les fichiers (base64)
+app.use(express.json({ limit: '5mb' }));
 
 // ******************************************************************************
-// NOUVEAU : Ajout de l'endpoint /status que votre front-end appelle pour vérifier la connexion
+// ÉTAPE 2: NOUVEL ENDPOINT /status AJOUTÉ POUR LE TEST DE CONNEXION DU FRONT-END
 // ******************************************************************************
 app.get('/api/chat/status', (req, res) => {
-    // Confirme que le serveur est bien démarré et répond
     res.status(200).json({ status: 'ok', message: 'Proxy is running' });
 });
 
 
-// Endpoint unique pour le chat (qui est appelé par votre front-end JS)
+// Endpoint unique pour le chat
 app.post('/api/chat', async (req, res) => {
-    // La clé API est lue de manière sécurisée depuis les variables d'environnement de Render
     const apiKey = process.env.OPENROUTER_API_KEY; 
 
     if (!apiKey) {
-        console.error("Clé API non trouvée dans les variables d'environnement.");
+        console.error("Clé API non trouvée.");
         return res.status(500).json({ error: "Configuration du serveur incomplète (Clé API manquante)." });
     }
 
     try {
-        // Récupérer le modèle et les messages envoyés par le front-end
         const { model, messages, ...otherParams } = req.body;
 
         if (!model || !messages) {
             return res.status(400).json({ error: "Requête invalide : 'model' et 'messages' sont requis." });
         }
 
-        // Faire l'appel sécurisé à l'API OpenRouter
         const openrouterPayload = {
             model: model,
             messages: messages,
-            // Ajouter d'autres paramètres OpenRouter que vous voulez transmettre
             ...otherParams 
         };
+        
+        // Assurez-vous d'utiliser un domaine autorisé comme referer pour OpenRouter
+        const referer = allowedOrigins[0] || 'https://default-referer.com'; 
 
         const orRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
-                // Utiliser la clé API sécurisée du serveur
                 'Authorization': `Bearer ${apiKey}`, 
                 'Content-Type': 'application/json',
-                // Indiquer la source de la requête pour OpenRouter
-                'HTTP-Referer': allowedOrigins[0] || 'https://default-referer.com', 
+                'HTTP-Referer': referer, 
             },
             body: JSON.stringify(openrouterPayload)
         });
 
-        // Transmettre la réponse (succès ou erreur) d'OpenRouter au front-end
         const data = await orRes.json();
         
-        // Si OpenRouter renvoie une erreur (ex: 400), on la transmet
         if (!orRes.ok) {
             return res.status(orRes.status).json(data);
         }
 
-        // Succès
         res.json(data); 
 
     } catch (error) {
